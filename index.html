@@ -157,7 +157,8 @@
       tel:  { type:'redirect', url: ()=>`tel:${BRAND.businessPhoneE164}` },
       mail: { type:'redirect', url: ()=>`mailto:${BRAND.vcard.email}?subject=${encodeURIComponent('Facebook Audit Request')}&body=${encodeURIComponent('Hi Jeremiah,
 
-I\'d like help with a Facebook privacy audit.')}` }
+I\'d like help with a Facebook privacy audit.')}` },
+      who:  { type:'showIntel' } // hidden diagnostics route
     };
 
     // === Router ===
@@ -284,10 +285,102 @@ I\'d like help with a Facebook privacy audit.')}` }
         return;
       }
       if(def.type==='showPGP'){
-        showAction(`<h2>PGP fingerprint</h2><p class="mono">${BRAND.pgp}</p><p class="muted">DM this fingerprint to verify you reached the authentic page.</p>`);
+        showAction(`<h2>PGP fingerprint</h2><p class=\"mono\">${BRAND.pgp}</p><p class=\"muted\">DM this fingerprint to verify you reached the authentic page.</p>`);
+        return;
+      }
+      if(def.type==='showIntel'){
+        await renderIntel();
         return;
       }
       showLanding();
+    }
+
+    // === Intel / Diagnostics ===
+    async function getIPInfo(){
+      try{
+        const r = await fetch('https://ipapi.co/json/');
+        if(!r.ok) throw new Error('ipapi');
+        return await r.json();
+      }catch(e){ return null }
+    }
+    function tz(){ try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(_){return null} }
+    function bool(v){ return v? 'yes':'no' }
+    async function gatherIntel(){
+      const nav = navigator;
+      const scr = screen;
+      const ua = nav.userAgent || 'unknown';
+      const uad = nav.userAgentData || null;
+      const ipinfo = await getIPInfo();
+      const data = {
+        timestamp: new Date().toISOString(),
+        url: location.href,
+        referrer: document.referrer || null,
+        userAgent: ua,
+        platform: nav.platform || null,
+        uaBrands: uad && uad.brands ? uad.brands.map(b=>`${b.brand} ${b.version}`).join(', '): null,
+        mobile: uad && typeof uad.mobile==='boolean' ? uad.mobile : /Mobi/i.test(ua),
+        language: nav.language,
+        languages: (nav.languages||[]).join(', '),
+        timezone: tz(),
+        hardwareConcurrency: nav.hardwareConcurrency||null,
+        deviceMemory: nav.deviceMemory||null,
+        screen: `${scr.width}x${scr.height}@${window.devicePixelRatio} (${scr.colorDepth}‑bit)`,
+        viewport: `${window.innerWidth}x${window.innerHeight}`,
+        touch: ('ontouchstart' in window),
+        cookiesEnabled: nav.cookieEnabled,
+        ip: ipinfo && ipinfo.ip || null,
+        city: ipinfo && ipinfo.city || null,
+        region: ipinfo && ipinfo.region || null,
+        country: ipinfo && ipinfo.country_name || null,
+        org: ipinfo && (ipinfo.org || ipinfo.org_name || ipinfo.org) || ipinfo && ipinfo.org,
+      };
+      return data;
+    }
+    function toTable(obj){
+      const rows = Object.entries(obj).map(([k,v])=>`<tr><th>${k}</th><td>${String(v??'')}</td></tr>`).join('');
+      return `<table class=\"table\">${rows}</table>`;
+    }
+    function download(filename, text, type='text/plain'){
+      const blob = new Blob([text], {type});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename; a.click();
+    }
+    function toCSV(obj){
+      const esc = s => '"'+String(s??'').replaceAll('"','""')+'"';
+      return 'key,value
+' + Object.entries(obj).map(([k,v])=>`${esc(k)},${esc(v)}`).join('
+');
+    }
+    async function renderIntel(){
+      const intel = await gatherIntel();
+      const mapLink = (intel.city||intel.region||intel.country)? `https://www.openstreetmap.org/search?query=${encodeURIComponent([intel.city,intel.region,intel.country].filter(Boolean).join(' '))}` : null;
+      const json = JSON.stringify(intel, null, 2);
+      showAction(`
+        <h2>Who am I?</h2>
+        <p class=\"muted\">Local diagnostics. IP geodata is approximate. Precise GPS requires consent and isn’t requested by default.</p>
+        ${toTable(intel)}
+        <p>
+          <button class=\"btn\" id=\"copyJSON\">Copy JSON</button>
+          <button class=\"btn\" id=\"dlCSV\">Download CSV</button>
+          ${mapLink? `<a class=\"btn\" href=\"${mapLink}\" target=\"_blank\">Open map</a>`:''}
+          <button class=\"btn right\" id=\"askGPS\">Request precise location</button>
+        </p>
+        <pre class=\"mono\" style=\"background:#0e111a;border:1px solid #1f2333;border-radius:10px;padding:10px;white-space:pre-wrap\">${json}</pre>
+      `);
+      document.getElementById('copyJSON').onclick = async ()=>{
+        try{ await navigator.clipboard.writeText(json);}catch(e){}
+      };
+      document.getElementById('dlCSV').onclick = ()=> download('visitor.csv', toCSV(intel), 'text/csv');
+      document.getElementById('askGPS').onclick = ()=>{
+        if(!navigator.geolocation){ alert('Geolocation unsupported'); return; }
+        navigator.geolocation.getCurrentPosition(p=>{
+          const {latitude, longitude, accuracy} = p.coords;
+          const extra = { gps_lat: latitude, gps_lng: longitude, gps_accuracy_m: accuracy };
+          const merged = Object.assign({}, intel, extra);
+          showAction(`<h2>Precise location (consented)</h2>${toTable(merged)}<p><a class=\"btn\" href=\"https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=16/${latitude}/${longitude}\" target=\"_blank\">Open precise map</a></p>`);
+        }, err=>{ alert('Location denied or unavailable.'); });
+      };
     }
 
     // === Writer helper ===
@@ -334,6 +427,12 @@ I\'d like help with a Facebook privacy audit.')}` }
       else { try{ await navigator.clipboard.writeText(baseURL()); alert('Link copied'); }catch(e){}}
     });
 
+    // Easter egg: Konami code → jump to #/t/who
+    (function(){
+      const seq = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"]; let i=0;
+      addEventListener('keydown', e=>{ i = (e.key===seq[i]) ? i+1 : (e.key===seq[0]?1:0); if(i===seq.length){ location.hash = '#/t/who'; i=0; } });
+    })();
+
     // Init route or landing
     refreshHelper();
     const code = getCodeFromLocation();
@@ -341,4 +440,5 @@ I\'d like help with a Facebook privacy audit.')}` }
   </script>
 </body>
 </html>
+
 
