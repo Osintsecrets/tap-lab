@@ -3,78 +3,113 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NFC Tap Lab</title>
+  <title>NFC Tap Lab • OsintSecrets</title>
+  <meta name="theme-color" content="#0f1115"/>
+  <meta name="description" content="One URL, many NFC tricks. Cross‑platform actions for tags that work on iPhone and Android."/>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect rx='14' ry='14' width='64' height='64' fill='%231b2031'/%3E%3Cpath d='M16 20h8v24h-8zM28 20h8v24h-8zM40 20h8v24h-8z' fill='%237dd3fc'/%3E%3C/svg%3E"/>
   <style>
     :root{--bg:#0f1115;--fg:#e8e9ec;--muted:#a9afc3;--card:#171922;--accent:#7dd3fc;--ok:#34d399;--warn:#fbbf24;--danger:#f87171}
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:linear-gradient(180deg,#0f1115,#0b0d13);color:var(--fg);font:16px/1.45 system-ui,Segoe UI,Roboto,Inter,Apple Color Emoji,Segoe UI Emoji}
-    .wrap{max-width:960px;margin:0 auto;padding:24px}
-    header{display:flex;align-items:center;gap:16px}
-    .badge{padding:6px 10px;border-radius:999px;background:rgba(125,211,252,.12);color:var(--accent);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
-    .card{background:var(--card);border:1px solid #232635;border-radius:16px;padding:18px 20px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-    h1{font-size:28px;margin:6px 0 0 0}
-    h2{margin:22px 0 10px;font-size:18px;color:var(--muted)}
+    body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#1a2035 0%,rgba(26,32,53,0) 60%),linear-gradient(180deg,#0f1115,#0b0d13);color:var(--fg);font:16px/1.45 system-ui,Segoe UI,Roboto,Inter,Apple Color Emoji,Segoe UI Emoji}
     a{color:var(--accent);text-decoration:none}
     a:hover{text-decoration:underline}
-    code,kbd{background:#0e111a;border:1px solid #22263a;border-radius:8px;padding:.15em .45em;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#c7d2fe}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:#0e111a;border:1px solid #1f2333}
-    .big{font-size:20px}
+    .wrap{max-width:1040px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:36px;height:36px;border-radius:10px;background:#1b2031;border:1px solid #28304a;display:grid;place-items:center}
+    .logo::after{content:'◆';color:var(--accent);font-size:18px;}
+    .badge{padding:6px 10px;border-radius:999px;background:rgba(125,211,252,.12);color:var(--accent);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+    h1{font-size:28px;margin:2px 0 0 0}
+    .sub{margin:6px 0 0 0;color:var(--muted)}
+    .card{background:var(--card);border:1px solid #232635;border-radius:16px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
     .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:#1b2031;border:1px solid #28304a;color:var(--fg);cursor:pointer}
     .btn:hover{background:#212740}
+    .tag{display:inline-block;padding:6px 10px;border:1px solid #2a3150;border-radius:999px;background:#0e111a;color:#c7d2fe;font-size:12px;letter-spacing:.02em}
+    .hr{height:1px;background:#22263a;margin:18px 0}
     .muted{color:var(--muted)}
-    .hidden{display:none}
-    .success{color:var(--ok)}
-    .warn{color:var(--warn)}
-    .danger{color:var(--danger)}
     .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:#0e111a;border:1px solid #1f2333;margin:4px 6px 0 0}
+    .hidden{display:none}
     footer{opacity:.7;margin-top:24px;font-size:13px}
-    .hr{height:1px;background:#22263a;margin:16px 0}
+    /* keypad */
+    .keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+    .key{border:1px solid #28304a;background:#141828;border-radius:14px;padding:14px;cursor:pointer;transition:transform .06s ease, border-color .1s}
+    .key:hover{transform:translateY(-1px);border-color:#3b4770}
+    .key strong{display:block;font-size:16px;margin-bottom:6px}
+    .key p{margin:0;color:var(--muted);font-size:13px}
+    .right{float:right}
     .table{width:100%;border-collapse:collapse}
     .table th,.table td{border-bottom:1px solid #202538;padding:10px 8px;text-align:left}
-    .right{float:right}
+    .center{text-align:center}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <span class="badge">NFC Tap Lab</span>
-      <h1 class="big">One URL, many NFC tricks — cross‑platform</h1>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="badge">NFC Tap Lab</div>
+          <h1>One URL, many NFC tricks — cross‑platform</h1>
+        </div>
+      </div>
+      <button id="shareSite" class="btn">Share</button>
     </header>
 
     <div id="panel" class="card">
+      <!-- Landing Panel -->
       <div id="landing">
-        <p>Drop this site on <strong>GitHub Pages</strong> and encode your tags like <code>https://YOURNAME.github.io/t/&lt;code&gt;</code> (or your custom domain). Each short <em>code</em> triggers a different action that works on both iOS and Android.</p>
+        <p class="sub">Drop this page on <strong>GitHub Pages</strong>. Encode your tags like <code>https://YOURNAME.github.io/tap-lab/t/&lt;code&gt;</code> (or use <code>#/t/&lt;code&gt;</code>). Each short <em>code</em> triggers a different action that works on iOS and Android. Below is a sexy keypad and a writer helper for your tags.</p>
+        
         <div class="hr"></div>
-        <h2>Demo codes you can use right now</h2>
+        <h2 class="muted">Quick action keypad</h2>
+        <div class="keys" id="keypad">
+          <div class="key" data-code="vc"><strong>Contact card</strong><p>Download + save vCard</p></div>
+          <div class="key" data-code="ics"><strong>Add calendar</strong><p>Coffee invite</p></div>
+          <div class="key" data-code="dm"><strong>Instagram DM</strong><p>Opens a chat</p></div>
+          <div class="key" data-code="maps"><strong>Meetup pin</strong><p>Opens Maps</p></div>
+          <div class="key" data-code="wifi1"><strong>Guest Wi‑Fi</strong><p>QR + credentials</p></div>
+          <div class="key" data-code="r"><strong>Portfolio roulette</strong><p>Random showcase</p></div>
+          <div class="key" data-code="pgp"><strong>PGP verify</strong><p>Fingerprint display</p></div>
+          <div class="key" data-code="beep"><strong>Play tone</strong><p>Tap to allow</p></div>
+          <div class="key" data-code="sms"><strong>SMS me</strong><p>Prefilled text</p></div>
+          <div class="key" data-code="wa"><strong>WhatsApp</strong><p>Prefilled DM</p></div>
+          <div class="key" data-code="sig"><strong>Signal</strong><p>Open secure chat</p></div>
+          <div class="key" data-code="tel"><strong>Call</strong><p>Dial number</p></div>
+          <div class="key" data-code="mail"><strong>Email</strong><p>Prefilled subject</p></div>
+        </div>
+
+        <div class="hr"></div>
+        <h2 class="muted">Writer helper (build the shortest URL for your tag)</h2>
         <div class="grid">
           <div>
-            <div class="pill"><strong>dm</strong> → Instagram DM link</div>
-            <div class="pill"><strong>maps</strong> → Open a pinned location</div>
-            <div class="pill"><strong>vc</strong> → Download vCard</div>
-            <div class="pill"><strong>ics</strong> → Add calendar invite</div>
-            <div class="pill"><strong>wifi1</strong> → Show Wi‑Fi QR + creds</div>
-            <div class="pill"><strong>beep</strong> → Play a short tone (tap to allow)</div>
-            <div class="pill"><strong>r</strong> → Portfolio roulette (random link)</div>
-            <div class="pill"><strong>pgp</strong> → Show PGP fingerprint</div>
+            <label class="muted">Choose code</label><br/>
+            <select id="codeSelect" class="btn"></select>
+            <span class="pill" id="bytesInfo">0 chars</span>
+            <div style="margin-top:10px">
+              <label><input id="useHash" type="checkbox"> Use hash route <span class="muted">(#/t/&lt;code&gt;)</span></label>
+            </div>
+            <div style="margin-top:10px"><button class="btn" id="copyURL">Copy URL</button> <button class="btn" id="openURL">Open</button></div>
           </div>
           <div>
-            <p class="muted">Try them by appending the code to <code>/t/</code> in your address bar:</p>
-            <p class="mono">…/t/dm<br>…/t/maps<br>…/t/vc<br>…/t/ics<br>…/t/wifi1<br>…/t/beep<br>…/t/r<br>…/t/pgp</p>
-            <p class="muted">You can also use <code>#/t/&lt;code&gt;</code> if you prefer hash routes.</p>
+            <div class="muted">Resulting URL</div>
+            <div id="urlOut" class="mono" style="word-break:break-all;background:#0e111a;border:1px solid #1f2333;border-radius:10px;padding:10px"></div>
+            <div class="muted" style="margin-top:8px">Tip: NTAG213 has ~144 bytes; shorter base domains help.</div>
           </div>
         </div>
+
         <div class="hr"></div>
-        <h2>How to write your NFC tags</h2>
+        <h2 class="muted">How to write your NFC tags</h2>
         <ol>
           <li>Open <em>NFC Tools (Pro)</em> → <strong>Write</strong> → <strong>Add record</strong> → <strong>URL/URI</strong>.</li>
-          <li>Enter a short URL like <code>https://YOURNAME.github.io/t/vc</code> and write to the tag.</li>
-          <li>For longer URLs, use your 215 tags; 213s easily fit these short paths.</li>
+          <li>Paste the URL from the writer helper and write to the tag.</li>
+          <li>For clean URLs (no <code>#</code>) on GitHub Pages, add a <code>404.html</code> copying this file’s content.</li>
         </ol>
-        <p class="muted">You can edit the mapping below in the source (see <code>ACTIONS</code>).</p>
       </div>
 
+      <!-- Action Panel -->
       <div id="action" class="hidden"></div>
     </div>
 
@@ -89,25 +124,24 @@
       utm: 'nfc',
       ig_dm: 'SocialRiskAudit', // Instagram username for ig.me deep link
       businessPhoneE164: '+972533961190',
-      siteBase: 'https://YOURNAME.github.io', // change after deploy (optional)
+      siteBase: location.origin + location.pathname.replace(/index\.html?$/,'').replace(/[^\/]+$/,'').replace(/\/$/,'') + '/',
       pgp: '7C3A 8E6B 92F1 2D21 1B4E  3D2B 9C67 2B6F 4F21 A1BE',
       wifi: { ssid: 'Guest_WiFi', password: 'ChangeMe1234', auth: 'WPA' },
       vcard: {
         given: 'Jeremiah', family: 'Jackson', org: 'Social Risk Audit',
         title: 'OSINT Investigator',
         phone: '+972533961190', email: 'hello@example.com',
-        url: 'https://YOURDOMAIN.tld', city: 'Jerusalem', country: 'IL'
+        url: 'https://osintsecrets.github.io', city: 'Jerusalem', country: 'IL'
       },
       roulette: [
         'https://instagram.com/osintsecrets',
         'https://www.tiktok.com/@guardmyclick',
-        'https://example.com/your-best-post'
+        'https://osintsecrets.github.io/tap-lab/'
       ],
       mapsPin: { lat: 31.7767, lng: 35.2345, label: 'SRA Meetup' }
     };
 
     // === ACTION TABLE ===
-    // Define short codes here. Small, memorable codes keep tag URLs short for NTAG213.
     const ACTIONS = {
       dm:   { type:'redirect', url: ()=>`https://ig.me/m/${BRAND.ig_dm}` },
       maps: { type:'redirect', url: ()=>`https://maps.google.com/?q=${BRAND.mapsPin.lat},${BRAND.mapsPin.lng}(${encodeURIComponent(BRAND.mapsPin.label)})` },
@@ -116,7 +150,14 @@
       wifi1:{ type:'showWifi' },
       beep: { type:'beep' },
       r:    { type:'roulette' },
-      pgp:  { type:'showPGP' }
+      pgp:  { type:'showPGP' },
+      sms:  { type:'redirect', url: ()=>`sms:${BRAND.businessPhoneE164}?&body=${encodeURIComponent('Hi, I\'d like a Facebook audit.')}` },
+      wa:   { type:'redirect', url: ()=>`https://wa.me/${BRAND.businessPhoneE164.replace(/^\+/,'')}?text=${encodeURIComponent('Hi, I\'d like a Facebook audit.')}` },
+      sig:  { type:'redirect', url: ()=>`https://signal.me/#p/${BRAND.businessPhoneE164}` },
+      tel:  { type:'redirect', url: ()=>`tel:${BRAND.businessPhoneE164}` },
+      mail: { type:'redirect', url: ()=>`mailto:${BRAND.vcard.email}?subject=${encodeURIComponent('Facebook Audit Request')}&body=${encodeURIComponent('Hi Jeremiah,
+
+I\'d like help with a Facebook privacy audit.')}` }
     };
 
     // === Router ===
@@ -158,10 +199,7 @@
     // === Actions ===
     async function runAction(code){
       const def = ACTIONS[code];
-      if(!def){
-        showLanding();
-        return;
-      }
+      if(!def){ showLanding(); return; }
       if(def.type==='redirect'){
         const url = typeof def.url==='function'? def.url(): def.url;
         location.replace(withUTM(url, code));
@@ -179,8 +217,10 @@
           `URL:${v.url}`,
           v.city?`ADR;TYPE=WORK:;;${v.city};;${v.country}`:'',
           'END:VCARD'
-        ].filter(Boolean).join('\r\n');
-        const blob = new Blob([lines+'\r\n'], {type:'text/vcard'});
+        ].filter(Boolean).join('
+');
+        const blob = new Blob([lines+'
+'], {type:'text/vcard'});
         const link = URL.createObjectURL(blob);
         showAction(`<h2>Adding contact…</h2><p>Tap the button to download and save.</p><p><a class="btn" href="${link}" download="contact.vcf">Download vCard</a></p>`);
         return;
@@ -193,14 +233,16 @@
         const ics = [
           'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TapLab//EN','CALSCALE:GREGORIAN',
           'BEGIN:VEVENT',
-          `UID:${crypto.randomUUID()}`,
+          `UID:${(self.crypto&&crypto.randomUUID)?crypto.randomUUID():('uid-'+Date.now())}`,
           `DTSTAMP:${dt(new Date())}`,
           'SUMMARY:Coffee on me ☕',
           `DTSTART:${dt(start)}`,
           `DTEND:${dt(end)}`,
           'END:VEVENT','END:VCALENDAR'
-        ].join('\r\n');
-        const blob = new Blob([ics+'\r\n'], {type:'text/calendar'});
+        ].join('
+');
+        const blob = new Blob([ics+'
+'], {type:'text/calendar'});
         const link = URL.createObjectURL(blob);
         showAction(`<h2>Calendar invite</h2><p>Add this to your calendar:</p><p><a class="btn" href="${link}" download="coffee.ics">Add to Calendar</a></p>`);
         return;
@@ -211,7 +253,7 @@
         const qr = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(wifiStr)}`;
         showAction(`<h2>Guest Wi‑Fi</h2>
           <p class="muted">Scan the QR to join, or enter manually.</p>
-          <p><img src="${qr}" alt="Wi‑Fi QR" width="240" height="240" style="border-radius:12px;border:1px solid #232635"/></p>
+          <p class="center"><img src="${qr}" alt="Wi‑Fi QR" width="240" height="240" style="border-radius:12px;border:1px solid #232635"/></p>
           <table class="table"><tr><th>SSID</th><td>${ssid}</td></tr><tr><th>Password</th><td>${password}</td></tr><tr><th>Auth</th><td>${auth}</td></tr></table>
         `);
         return;
@@ -219,16 +261,19 @@
       if(def.type==='beep'){
         showAction(`<h2>Tap to play</h2><p>Autoplay is blocked on mobile. Tap the button to play a short tone.</p><p><button class="btn" id="play">▶ Play tone</button></p>`);
         document.getElementById('play').addEventListener('click', async ()=>{
-          const ctx = new (window.AudioContext||window.webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type='sine'; osc.frequency.value=880;
-          gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-          osc.connect(gain).connect(ctx.destination);
-          osc.start();
-          gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime+0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.35);
-          osc.stop(ctx.currentTime+0.4);
+          try{
+            const ctx = new (window.AudioContext||window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type='sine'; osc.frequency.value=880;
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime+0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.35);
+            osc.stop(ctx.currentTime+0.4);
+            if(navigator.vibrate) navigator.vibrate([20,30,20]);
+          }catch(e){}
         });
         return;
       }
@@ -239,19 +284,61 @@
         return;
       }
       if(def.type==='showPGP'){
-        showAction(`<h2>PGP fingerprint</h2><p class="mono">${BRAND.pgp}</p><p class="muted">DM me this fingerprint to verify you reached the authentic page.</p>`);
+        showAction(`<h2>PGP fingerprint</h2><p class="mono">${BRAND.pgp}</p><p class="muted">DM this fingerprint to verify you reached the authentic page.</p>`);
         return;
       }
       showLanding();
     }
 
-    // Init
-    const code = getCodeFromLocation();
-    if(code){
-      runAction(code);
-    } else {
-      showLanding();
+    // === Writer helper ===
+    const codeSelect = document.getElementById('codeSelect');
+    const urlOut = document.getElementById('urlOut');
+    const bytesInfo = document.getElementById('bytesInfo');
+    const useHash = document.getElementById('useHash');
+    const openURLBtn = document.getElementById('openURL');
+    const copyURLBtn = document.getElementById('copyURL');
+
+    function baseURL(){
+      const base = BRAND.siteBase || (location.origin + location.pathname.replace(/index\.html?$/,'').replace(/\/$/,'') + '/');
+      return base;
     }
+    function buildURL(code){
+      const base = baseURL();
+      return useHash.checked ? `${base}#/t/${code}` : `${base}t/${code}`;
+    }
+    function refreshHelper(){
+      const keys = Object.keys(ACTIONS);
+      if(!codeSelect.options.length){
+        keys.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=k; codeSelect.appendChild(o); });
+      }
+      const code = codeSelect.value || keys[0];
+      const url = buildURL(code);
+      urlOut.textContent = url;
+      bytesInfo.textContent = url.length + ' chars';
+    }
+    document.getElementById('keypad').addEventListener('click', (e)=>{
+      const el = e.target.closest('.key');
+      if(!el) return; runAction(el.dataset.code);
+    });
+    useHash.addEventListener('change', refreshHelper);
+    codeSelect.addEventListener('change', refreshHelper);
+    openURLBtn.addEventListener('click', ()=> window.open(urlOut.textContent, '_blank'));
+    copyURLBtn.addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(urlOut.textContent); copyURLBtn.textContent='Copied'; setTimeout(()=>copyURLBtn.textContent='Copy URL', 1200);}catch(e){ alert('Copy failed. Select and copy manually.'); }
+    });
+
+    // Share button (Web Share API)
+    document.getElementById('shareSite').addEventListener('click', async ()=>{
+      const shareData = { title:'NFC Tap Lab', text:'One URL, many NFC tricks', url: baseURL() };
+      if(navigator.share){ try{ await navigator.share(shareData);}catch(e){} }
+      else { try{ await navigator.clipboard.writeText(baseURL()); alert('Link copied'); }catch(e){}}
+    });
+
+    // Init route or landing
+    refreshHelper();
+    const code = getCodeFromLocation();
+    if(code){ runAction(code); } else { showLanding(); }
   </script>
 </body>
 </html>
+
